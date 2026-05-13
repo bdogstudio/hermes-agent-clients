@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hermes Chat</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">H</div>
+          <div>
+            <h1>Hermes</h1>
+            <p>Cloud Agent</p>
+          </div>
+        </div>
+
+        <button class="new-chat" id="newChatButton" type="button">
+          <span aria-hidden="true">+</span>
+          新对话
+        </button>
+
+        <div class="session-list" id="sessionList" aria-label="对话列表"></div>
+
+        <section class="settings-panel" aria-label="连接配置">
+          <div class="panel-title">连接</div>
+          <label>
+            云端地址
+            <input id="baseUrlInput" type="url" spellcheck="false" placeholder="https://your-hermes.example.com" />
+          </label>
+          <label>
+            API Key
+            <input id="apiKeyInput" type="password" spellcheck="false" placeholder="sk-..." />
+          </label>
+          <div class="settings-grid">
+            <label>
+              Hermes 模型
+              <input id="modelSelect" type="text" spellcheck="false" list="modelOptions" value="hermes-agent" />
+              <datalist id="modelOptions">
+                <option value="hermes-agent"></option>
+              </datalist>
+            </label>
+            <div class="settings-note">模型由 Hermes 后端路由到已配置的 LLM。</div>
+          </div>
+          <label>
+            系统提示
+            <textarea id="instructionsInput" rows="3" placeholder="可选：给 Hermes 的本次对话设定角色或任务边界"></textarea>
+          </label>
+          <label>
+            输出上限
+            <input id="maxTokensInput" type="number" min="1" step="1" placeholder="可选 max_tokens" />
+          </label>
+          <label class="inline-setting">
+            <input id="responseStreamInput" type="checkbox" checked />
+            Responses 使用流式输出
+          </label>
+          <label>
+            响应记录 ID
+            <input id="responseIdInput" type="text" spellcheck="false" placeholder="resp_xxx" />
+          </label>
+          <div class="settings-actions">
+            <button class="secondary-button" id="getResponseButton" type="button">读取响应</button>
+            <button class="secondary-button danger-button" id="deleteResponseButton" type="button">删除响应</button>
+          </div>
+          <button class="secondary-button" id="healthButton" type="button">检查连接</button>
+          <div class="connection-status" id="connectionStatus">尚未检查</div>
+        </section>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div>
+            <div class="eyebrow">Mac Desktop Client</div>
+            <h2 id="chatTitle">Hermes 实时消息</h2>
+          </div>
+          <div class="mode-switch" role="tablist" aria-label="运行模式">
+            <button class="mode active" data-mode="chat" type="button">实时消息</button>
+            <button class="mode" data-mode="responses" type="button">会话保持</button>
+            <button class="mode" data-mode="runs" type="button">Runs</button>
+            <button class="mode" data-mode="jobs" type="button">定时任务</button>
+          </div>
+        </header>
+
+        <section class="chat-area" id="chatArea" aria-live="polite"></section>
+
+        <section class="jobs-panel hidden" id="jobsPanel" aria-label="定时任务管理">
+          <form class="job-form" id="jobForm">
+            <label>
+              名称
+              <input id="jobNameInput" type="text" placeholder="每日早报" />
+            </label>
+            <label>
+              Cron
+              <input id="jobScheduleInput" type="text" placeholder="0 9 * * *" />
+            </label>
+            <label class="job-prompt">
+              Prompt
+              <textarea id="jobPromptInput" rows="3" placeholder="每天发一条新闻摘要给我"></textarea>
+            </label>
+            <div class="job-actions">
+              <button class="secondary-button" id="refreshJobsButton" type="button">刷新任务</button>
+              <button class="send-button" type="submit">创建任务</button>
+            </div>
+          </form>
+          <div class="jobs-list" id="jobsList"></div>
+        </section>
+
+        <section class="trace-panel collapsed" id="tracePanel">
+          <button class="trace-toggle" id="traceToggle" type="button">状态 / 工具进度</button>
+          <div class="trace-content" id="traceContent"></div>
+        </section>
+
+        <form class="composer" id="composer">
+          <div class="composer-input">
+            <textarea id="promptInput" rows="1" placeholder="给 Hermes 发消息..." autocomplete="off"></textarea>
+            <div class="composer-hint">Enter 换行 · ⌘/Ctrl + Enter 发送</div>
+          </div>
+          <div class="composer-actions">
+            <button class="stop-button hidden" id="stopButton" type="button">停止</button>
+            <button class="send-button" id="sendButton" type="submit">发送</button>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "hermes-mac-chat",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A macOS desktop chat client for a cloud-hosted Hermes Agent.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js"
+  },
+  "devDependencies": {
+    "electron": "^42.0.1"
+  }
+}

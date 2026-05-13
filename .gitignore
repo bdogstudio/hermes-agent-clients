@@ -1,0 +1,13 @@
+.DS_Store
+node_modules/
+dist/
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.ipa
+*.dmg
+*.app
+.env
+.env.*
+npm-debug.log*
