@@ -29,7 +29,13 @@ const els = {
   jobPrompt: document.querySelector("#jobPromptInput"),
   refreshJobs: document.querySelector("#refreshJobsButton"),
   jobsList: document.querySelector("#jobsList"),
+  imageButton: document.querySelector("#imageButton"),
+  imageInput: document.querySelector("#imageInput"),
+  imagePreview: document.querySelector("#imagePreview"),
 };
+
+// Pending image attachment (data URL) for the next Chat send. Not persisted.
+let pendingImage = null;
 
 const STORAGE_KEY = "hermes-mac-chat-state";
 
@@ -171,6 +177,13 @@ function messageNode(message) {
   bubble.className = "bubble";
   bubble.textContent = message.content || "";
 
+  if (message.image) {
+    const img = document.createElement("img");
+    img.className = "bubble-image";
+    img.src = message.image;
+    bubble.prepend(img);
+  }
+
   if (message.meta) {
     const meta = document.createElement("div");
     meta.className = "meta-line";
@@ -298,6 +311,9 @@ function renderMode() {
   els.chatArea.classList.toggle("hidden", state.mode === "jobs");
   els.jobsPanel.classList.toggle("hidden", state.mode !== "jobs");
   els.composer.classList.toggle("hidden", state.mode === "jobs");
+  // Image attach is Chat-only (multimodal /v1/chat/completions).
+  els.imageButton.classList.toggle("hidden", state.mode !== "chat");
+  if (state.mode !== "chat" && pendingImage) { pendingImage = null; renderImagePreview(); }
 }
 
 function render() {
@@ -352,10 +368,17 @@ function textMessagesForChat() {
   const messages = activeSession()
     .messages
     .filter((message) => !message.error)
-    .map((message) => ({
-      role: message.role === "assistant" ? "assistant" : "user",
-      content: message.content,
-    }));
+    .map((message) => {
+      const role = message.role === "assistant" ? "assistant" : "user";
+      // Multimodal: a message with an image sends content as an array of parts.
+      if (message.image) {
+        const parts = [];
+        if (message.content) parts.push({ type: "text", text: message.content });
+        parts.push({ type: "image_url", image_url: { url: message.image } });
+        return { role, content: parts };
+      }
+      return { role, content: message.content };
+    });
   const config = readConfigFromForm();
   if (config.instructions) {
     return [{ role: "system", content: config.instructions }, ...messages];
@@ -363,11 +386,11 @@ function textMessagesForChat() {
   return messages;
 }
 
-async function sendChat(question) {
+async function sendChat(question, image = null) {
   const requestId = crypto.randomUUID();
   state.activeRequestId = requestId;
 
-  pushMessage({ role: "user", content: question });
+  pushMessage({ role: "user", content: question, image: image || undefined });
   pushMessage({ role: "assistant", content: "" });
   setBusy(true);
 
@@ -462,19 +485,53 @@ async function sendRun(question) {
   });
 }
 
-async function sendPrompt(question) {
+async function sendPrompt(question, image = null) {
   if (state.mode === "runs") {
     await sendRun(question);
   } else if (state.mode === "responses") {
     await sendResponse(question);
   } else if (state.mode === "chat") {
-    await sendChat(question);
+    await sendChat(question, image);
   }
 }
 
 function autoGrow() {
   els.input.style.height = "auto";
   els.input.style.height = `${Math.min(220, els.input.scrollHeight)}px`;
+}
+
+// ── image attachment (Chat mode) ──────────────────────────────────────────
+function fileToDownscaledDataURL(file, maxEdge = 1024, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+function renderImagePreview() {
+  els.imagePreview.replaceChildren();
+  els.imagePreview.classList.toggle("hidden", !pendingImage);
+  if (!pendingImage) return;
+  const img = document.createElement("img");
+  img.src = pendingImage;
+  const clear = document.createElement("button");
+  clear.type = "button";
+  clear.className = "image-clear";
+  clear.textContent = "✕";
+  clear.addEventListener("click", () => { pendingImage = null; renderImagePreview(); });
+  els.imagePreview.append(img, clear);
 }
 
 async function init() {
@@ -494,10 +551,24 @@ async function init() {
 els.composer.addEventListener("submit", async (event) => {
   event.preventDefault();
   const question = els.input.value.trim();
-  if (!question || els.send.disabled) return;
+  const image = state.mode === "chat" ? pendingImage : null;
+  if ((!question && !image) || els.send.disabled) return;
   els.input.value = "";
+  pendingImage = null;
+  renderImagePreview();
   autoGrow();
-  await sendPrompt(question);
+  await sendPrompt(question, image);
+});
+
+els.imageButton.addEventListener("click", () => els.imageInput.click());
+els.imageInput.addEventListener("change", async () => {
+  const file = els.imageInput.files && els.imageInput.files[0];
+  els.imageInput.value = "";
+  if (!file) return;
+  try {
+    pendingImage = await fileToDownscaledDataURL(file);
+    renderImagePreview();
+  } catch (_) { /* ignore unreadable image */ }
 });
 
 els.input.addEventListener("input", autoGrow);

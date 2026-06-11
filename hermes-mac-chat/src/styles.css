@@ -643,3 +643,34 @@ textarea:focus {
     justify-content: flex-end;
   }
 }
+
+/* Image attachment (Chat) */
+.bubble-image {
+  display: block;
+  max-width: 240px;
+  max-height: 240px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+.image-preview {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.image-preview.hidden { display: none; }
+.image-preview img {
+  max-width: 72px;
+  max-height: 72px;
+  border-radius: 8px;
+}
+.image-clear {
+  margin-left: 6px;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+}

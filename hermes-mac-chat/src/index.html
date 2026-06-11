@@ -114,10 +114,13 @@
 
         <form class="composer" id="composer">
           <div class="composer-input">
+            <div id="imagePreview" class="image-preview hidden"></div>
             <textarea id="promptInput" rows="1" placeholder="给 Hermes 发消息..." autocomplete="off"></textarea>
-            <div class="composer-hint">Enter 换行 · ⌘/Ctrl + Enter 发送</div>
+            <div class="composer-hint">Enter 换行 · ⌘/Ctrl + Enter 发送 · 📎 附加图片</div>
           </div>
           <div class="composer-actions">
+            <input id="imageInput" type="file" accept="image/*" hidden />
+            <button class="secondary-button" id="imageButton" type="button" title="附加图片">📎</button>
             <button class="stop-button hidden" id="stopButton" type="button">停止</button>
             <button class="send-button" id="sendButton" type="submit">发送</button>
           </div>
