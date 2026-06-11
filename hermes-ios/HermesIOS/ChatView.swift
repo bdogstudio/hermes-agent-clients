@@ -21,7 +21,7 @@ struct ChatView: View {
                             }
 
                             if store.messages(for: mode).isEmpty {
-                                ContentUnavailableView(mode.title, systemImage: "message", description: Text("给 Hermes 发一条消息。"))
+                                ContentUnavailableView(mode.title, systemImage: "message", description: Text("Send Hermes a message."))
                                     .padding(.top, 80)
                             }
                         }
@@ -36,7 +36,7 @@ struct ChatView: View {
                 }
 
                 if !store.events(for: mode).isEmpty {
-                    DisclosureGroup("状态 / 工具进度") {
+                    DisclosureGroup("Status / Tool Progress") {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 8) {
                                 ForEach(store.events(for: mode)) { event in
@@ -62,7 +62,7 @@ struct ChatView: View {
             .navigationTitle(mode.title)
             .toolbar {
                 ToolbarItem(placement: .automatic) {
-                    Button("新会话") {
+                    Button("New") {
                         store.reset(mode: mode)
                     }
                 }
@@ -72,11 +72,11 @@ struct ChatView: View {
                     }
                 }
             }
-            .alert("请求失败", isPresented: Binding(
+            .alert("Request Failed", isPresented: Binding(
                 get: { errorMessage != nil },
                 set: { if !$0 { errorMessage = nil } }
             )) {
-                Button("好", role: .cancel) {}
+                Button("OK", role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
             }
@@ -91,14 +91,14 @@ struct ChatView: View {
                 .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
 
             HStack {
-                Text("换行直接输入，点发送提交")
+                Text("Type to add a line, tap Send to submit")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button {
                     Task { await send() }
                 } label: {
-                    Label("发送", systemImage: "paperplane.fill")
+                    Label("Send", systemImage: "paperplane.fill")
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
@@ -145,7 +145,7 @@ struct ChatView: View {
                 }
             }
         } catch {
-            store.replaceLastAssistant("连接或执行失败：\(error.localizedDescription)", in: mode)
+            store.replaceLastAssistant("Connection or execution failed: \(error.localizedDescription)", in: mode)
             errorMessage = error.localizedDescription
         }
 

@@ -192,7 +192,7 @@ actor HermesClient {
             let dict = created as? [String: Any],
             let runID = dict["id"] as? String ?? dict["run_id"] as? String
         else {
-            throw HermesError.decoding("Runs 接口没有返回 id")
+            throw HermesError.decoding("Runs endpoint did not return an id")
         }
         await MainActor.run {
             onEvent(.progress(title: "run.created", detail: runID))
@@ -282,7 +282,7 @@ enum HermesError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .invalidURL(let url): "URL 无效：\(url)"
+        case .invalidURL(let url): "Invalid URL: \(url)"
         case .http(let code, let message): "HTTP \(code): \(message)"
         case .decoding(let message): message
         }

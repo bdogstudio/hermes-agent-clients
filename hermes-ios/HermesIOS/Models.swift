@@ -7,8 +7,8 @@ enum ChatMode: String {
 
     var title: String {
         switch self {
-        case .chat: "实时消息"
-        case .responses: "会话保持"
+        case .chat: "Chat"
+        case .responses: "Responses"
         case .runs: "Runs"
         }
     }

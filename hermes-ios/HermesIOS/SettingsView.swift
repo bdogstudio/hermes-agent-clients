@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject private var settings: HermesSettings
-    @State private var status = "尚未检查"
+    @State private var status = "Not checked yet"
     @State private var isChecking = false
     @State private var responseID = ""
     @State private var responsePreview = ""
@@ -11,18 +11,18 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("连接") {
+                Section("Connection") {
                     TextField("Base URL", text: $settings.baseURL)
                     SecureField("API_SERVER_KEY", text: $settings.apiKey)
                         .onChange(of: settings.apiKey) { _, _ in settings.saveAPIKey() }
-                    TextField("模型", text: $settings.model)
+                    TextField("Model", text: $settings.model)
                     Button {
                         Task { await checkConnection() }
                     } label: {
                         if isChecking {
                             ProgressView()
                         } else {
-                            Label("检查连接", systemImage: "checkmark.seal")
+                            Label("Check Connection", systemImage: "checkmark.seal")
                         }
                     }
                     Text(status)
@@ -30,14 +30,14 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Section("对话配置") {
-                    TextField("max_tokens，可选", text: $settings.maxTokens)
-                    Toggle("Responses 使用流式输出", isOn: $settings.streamResponses)
+                Section("Chat Configuration") {
+                    TextField("max_tokens (optional)", text: $settings.maxTokens)
+                    Toggle("Stream Responses output", isOn: $settings.streamResponses)
                     TextEditor(text: $settings.instructions)
                         .frame(minHeight: 100)
                         .overlay(alignment: .topLeading) {
                             if settings.instructions.isEmpty {
-                                Text("系统提示，可选")
+                                Text("System prompt (optional)")
                                     .foregroundStyle(.secondary)
                                     .padding(.top, 8)
                                     .padding(.leading, 5)
@@ -45,14 +45,14 @@ struct SettingsView: View {
                         }
                 }
 
-                Section("响应记录") {
+                Section("Response Records") {
                     TextField("resp_xxx", text: $responseID)
                     HStack {
-                        Button("读取响应") {
+                        Button("Get Response") {
                             Task { await getResponse() }
                         }
                         Spacer()
-                        Button("删除响应", role: .destructive) {
+                        Button("Delete Response", role: .destructive) {
                             Task { await deleteResponse() }
                         }
                     }
@@ -63,12 +63,12 @@ struct SettingsView: View {
                     }
                 }
             }
-            .navigationTitle("设置")
-            .alert("操作失败", isPresented: Binding(
+            .navigationTitle("Settings")
+            .alert("Operation Failed", isPresented: Binding(
                 get: { errorMessage != nil },
                 set: { if !$0 { errorMessage = nil } }
             )) {
-                Button("好", role: .cancel) {}
+                Button("OK", role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
             }
@@ -83,13 +83,13 @@ struct SettingsView: View {
             let health = try await client.health()
             let detailed = try? await client.detailedHealth()
             let models = try? await client.models()
-            let modelText = models?.data.map(\.id).joined(separator: ", ") ?? "未知模型"
+            let modelText = models?.data.map(\.id).joined(separator: ", ") ?? "Unknown model"
             let platformText = detailed?.platforms?
                 .map { "\($0.key):\($0.value.state ?? "unknown")" }
                 .joined(separator: " ") ?? ""
-            status = "已连接：\(health.status) · \(modelText)\(platformText.isEmpty ? "" : " · \(platformText)")"
+            status = "Connected: \(health.status) · \(modelText)\(platformText.isEmpty ? "" : " · \(platformText)")"
         } catch {
-            status = "连接失败"
+            status = "Connection failed"
             errorMessage = error.localizedDescription
         }
     }
@@ -98,7 +98,7 @@ struct SettingsView: View {
         guard !responseID.isEmpty else { return }
         do {
             let result = try await HermesClient(settings: settings).getResponse(id: responseID)
-            responsePreview = result.displayText.isEmpty ? "已读取，但没有文本内容。" : result.displayText
+            responsePreview = result.displayText.isEmpty ? "Loaded, but no text content." : result.displayText
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -108,7 +108,7 @@ struct SettingsView: View {
         guard !responseID.isEmpty else { return }
         do {
             try await HermesClient(settings: settings).deleteResponse(id: responseID)
-            responsePreview = "已删除：\(responseID)"
+            responsePreview = "Deleted: \(responseID)"
         } catch {
             errorMessage = error.localizedDescription
         }

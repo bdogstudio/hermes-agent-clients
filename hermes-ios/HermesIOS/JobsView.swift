@@ -12,14 +12,14 @@ struct JobsView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("创建任务") {
-                    TextField("名称，例如每日早报", text: $name)
-                    TextField("Cron，例如 0 9 * * *", text: $schedule)
+                Section("Create Job") {
+                    TextField("Name, e.g. Daily Briefing", text: $name)
+                    TextField("Cron, e.g. 0 9 * * *", text: $schedule)
                     TextEditor(text: $prompt)
                         .frame(minHeight: 90)
                         .overlay(alignment: .topLeading) {
                             if prompt.isEmpty {
-                                Text("任务 Prompt")
+                                Text("Job Prompt")
                                     .foregroundStyle(.secondary)
                                     .padding(.top, 8)
                                     .padding(.leading, 5)
@@ -28,16 +28,16 @@ struct JobsView: View {
                     Button {
                         Task { await createJob() }
                     } label: {
-                        Label("创建任务", systemImage: "plus.circle.fill")
+                        Label("Create Job", systemImage: "plus.circle.fill")
                     }
                     .disabled(prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || schedule.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
 
-                Section("任务列表") {
+                Section("Jobs") {
                     if isLoading {
                         ProgressView()
                     } else if jobs.isEmpty {
-                        Text("暂无任务")
+                        Text("No jobs yet")
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(jobs) { job in
@@ -48,22 +48,22 @@ struct JobsView: View {
                     }
                 }
             }
-            .navigationTitle("定时任务")
+            .navigationTitle("Cron Jobs")
             .toolbar {
                 ToolbarItem(placement: .automatic) {
                     Button {
                         Task { await refresh() }
                     } label: {
-                        Label("刷新", systemImage: "arrow.clockwise")
+                        Label("Refresh", systemImage: "arrow.clockwise")
                     }
                 }
             }
             .task { await refresh() }
-            .alert("任务操作失败", isPresented: Binding(
+            .alert("Job Action Failed", isPresented: Binding(
                 get: { errorMessage != nil },
                 set: { if !$0 { errorMessage = nil } }
             )) {
-                Button("好", role: .cancel) {}
+                Button("OK", role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
             }
@@ -119,9 +119,9 @@ struct JobRow: View {
                     .lineLimit(3)
             }
             HStack {
-                Button("运行") { action("run") }
-                Button(job.enabled == false ? "恢复" : "暂停") { action(job.enabled == false ? "resume" : "pause") }
-                Button("删除", role: .destructive) { action("delete") }
+                Button("Run") { action("run") }
+                Button(job.enabled == false ? "Resume" : "Pause") { action(job.enabled == false ? "resume" : "pause") }
+                Button("Delete", role: .destructive) { action("delete") }
             }
             .buttonStyle(.bordered)
         }
@@ -131,9 +131,9 @@ struct JobRow: View {
     private var meta: String {
         [
             job.scheduleDisplay,
-            job.nextRunAt.map { "下次 \($0)" },
-            job.lastStatus.map { "上次 \($0)" },
-            job.enabled == false ? "暂停" : "启用"
+            job.nextRunAt.map { "Next \($0)" },
+            job.lastStatus.map { "Last \($0)" },
+            job.enabled == false ? "Paused" : "Enabled"
         ]
             .compactMap { $0 }
             .joined(separator: " · ")

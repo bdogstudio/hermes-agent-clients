@@ -6,11 +6,11 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             ChatView(mode: .chat)
-                .tabItem { Label("实时", systemImage: "message") }
+                .tabItem { Label("Chat", systemImage: "message") }
                 .tag(HermesTab.chat)
 
             ChatView(mode: .responses)
-                .tabItem { Label("会话", systemImage: "bubble.left.and.bubble.right") }
+                .tabItem { Label("Responses", systemImage: "bubble.left.and.bubble.right") }
                 .tag(HermesTab.responses)
 
             ChatView(mode: .runs)
@@ -18,11 +18,11 @@ struct ContentView: View {
                 .tag(HermesTab.runs)
 
             JobsView()
-                .tabItem { Label("任务", systemImage: "calendar.badge.clock") }
+                .tabItem { Label("Jobs", systemImage: "calendar.badge.clock") }
                 .tag(HermesTab.jobs)
 
             SettingsView()
-                .tabItem { Label("设置", systemImage: "gearshape") }
+                .tabItem { Label("Settings", systemImage: "gearshape") }
                 .tag(HermesTab.settings)
         }
     }
